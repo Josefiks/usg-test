@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Steam Group Generator by Josefiks</title>
+    <script type="module" src="script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="application">
+        <div class="header">
+            <div class="title">
+                Unique Steam Group Generator
+                <div class="subTitle">Your 2nd chance to get that fancy name and tag.</div>
+            </div>
+            <div class="smallButton">Share <img src="images/share.svg"/></div>
+            <div class="icon"><img src="images/logo.svg"/></div>
+        </div>
+        <div class="generator">
+            <input type="text" placeholder="Name or abbreviation (max. len. 63 or 11 for abbr.)"/>
+            <button><b>Copy to clipboard</b><img src="images/clipboard.svg"/></button>
+        </div>
+        <div class="about">
+            USGG simply <b>generates zero-width</b> character between letters. You can create a group via Steam <b>application</b> or <b>website</b>. Keep in mind that generated names might be taken. It’s better to choose longer name and generate untill success. Due to ZWJ tags are a bit shorter. Can't be used as a group link. Font glitches might appear.
+        </div>
+        <div class="groups">
+            <div class="header">
+                <div class="title">
+                    Groups
+                    <div class="subTitle">Latest groups shared by our users.</div>
+                </div>
+                <div class="smallButton" id="addGroup">Add group <img src="images/add.svg"/></div>
+                <div class="icon"><img src="images/groups.svg"/></div>
+            </div>
+            <input type="url">
+            <div class="content">
+
+            </div>
+        </div>
+        <div class="footer">
+            Since 2020 · Version 1.15 · Latest update April 11, 2023
+            <img src="images/cpt-onl.svg" width="47.5px"/>
+        </div>
+    </div>
+    <div id="overlay">
+        <div class="overlay-content">
+            <div class="header">
+                <div class="title">
+                    Add your group
+                    <div class="subTitle">So everyone will see it!</div>
+                </div>
+                <div id="close-button"><img src="images/close.svg"/></div>
+            </div>
+            <div class="addGroupContent">
+                <input type="text" placeholder="https://steamcommunity.com/groups/your-group-url">
+                <div class="information">Make sure your group is public so everybody will have ability to join it. Private groups will be ignored.</div>
+                <button id="createGroup">
+                    Add <img src="images/add.svg"/>
+                </button>
+            </div>
+        </div>
+      </div>
+</body>
+</html>
