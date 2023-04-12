@@ -17,51 +17,33 @@ const database = getDatabase()
 const groupRef = ref(database, 'groups')
 const visitorsRef = ref(database, 'visitors')
 
-// Generate a unique ID for the visitor's browser
-let browserId = localStorage.getItem('browserId');
+let browserId = localStorage.getItem('browserId')
 if (!browserId) {
-  browserId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  localStorage.setItem('browserId', browserId);
+  browserId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
+  localStorage.setItem('browserId', browserId)
 }
 
-// Check if the visitor's browser ID already exists in the database
 onValue(child(visitorsRef, browserId), (snapshot) => {
   if (!snapshot.exists()) {
-    // If the visitor's browser ID doesn't exist, add it to the database
     set(child(visitorsRef, browserId), {
       timestamp: Date.now()
-    });
+    })
   }
 })
 
 onValue(visitorsRef, (snapshot) => {
-  console.log(snapshot.size)
   $('#visitors').html(snapshot.size)
-  // const visitorCount = snapshot.after.numChildren();
-  // console.log('Number of visitors: ' + visitorCount);
 }, (error) => {
-  console.error('Error retrieving visitors:', error);
+  $('#visitors').html('N/A')
+  console.error('Error retrieving visitor size:', error)
 })
 
 onValue(groupRef, (snapshot) => {
-  console.log(snapshot.size)
   $('#groups').html(snapshot.size)
-  // const visitorCount = snapshot.after.numChildren();
-  // console.log('Number of visitors: ' + visitorCount);
 }, (error) => {
-  console.error('Error retrieving visitors:', error);
+  $('#groups').html('N/A')
+  console.error('Error retrieving group size:', error);
 })
-
-// Retrieve the number of unique visitors from the database
-// get(child(visitorsRef)).then((snapshot) => {
-//   const uniqueVisitors = snapshot.numChildren();
-//   console.log('Number of unique visitors: ' + uniqueVisitors);
-// }).catch((error) => {
-//   console.error('Error retrieving visitors:', error);
-// });
-
-// $('#visitors').html(localStorage.getItem('visitor').length)
-
 
 get(groupRef).then((snapshot) => {
     if (snapshot.exists()) {
