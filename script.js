@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js"
-import { getDatabase, ref, get, push, set, update, remove } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js"
+import { getDatabase, ref, get, push, set, onValue, child } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js"
 
 const firebaseConfig = {
     apiKey: "AIzaSyAPX5VHanXXxoG-cgrVqinSThMnVM4eMTo",
@@ -14,24 +14,74 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 const database = getDatabase()
-const dataRef = ref(database, 'groups');
+const groupRef = ref(database, 'groups')
+const visitorsRef = ref(database, 'visitors')
 
-get(dataRef).then((snapshot) => {
+// Generate a unique ID for the visitor's browser
+let browserId = localStorage.getItem('browserId');
+if (!browserId) {
+  browserId = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  localStorage.setItem('browserId', browserId);
+}
+
+// Check if the visitor's browser ID already exists in the database
+onValue(child(visitorsRef, browserId), (snapshot) => {
+  if (!snapshot.exists()) {
+    // If the visitor's browser ID doesn't exist, add it to the database
+    set(child(visitorsRef, browserId), {
+      timestamp: Date.now()
+    });
+  }
+})
+
+onValue(visitorsRef, (snapshot) => {
+  console.log(snapshot.size)
+  $('#visitors').html(snapshot.size)
+  // const visitorCount = snapshot.after.numChildren();
+  // console.log('Number of visitors: ' + visitorCount);
+}, (error) => {
+  console.error('Error retrieving visitors:', error);
+})
+
+onValue(groupRef, (snapshot) => {
+  console.log(snapshot.size)
+  $('#groups').html(snapshot.size)
+  // const visitorCount = snapshot.after.numChildren();
+  // console.log('Number of visitors: ' + visitorCount);
+}, (error) => {
+  console.error('Error retrieving visitors:', error);
+})
+
+// Retrieve the number of unique visitors from the database
+// get(child(visitorsRef)).then((snapshot) => {
+//   const uniqueVisitors = snapshot.numChildren();
+//   console.log('Number of unique visitors: ' + uniqueVisitors);
+// }).catch((error) => {
+//   console.error('Error retrieving visitors:', error);
+// });
+
+// $('#visitors').html(localStorage.getItem('visitor').length)
+
+
+get(groupRef).then((snapshot) => {
     if (snapshot.exists()) {
         snapshot.forEach((childSnapshot) => {
             const group = childSnapshot.val()
-            console.log(group.name, group.abbrevitation, group.logo, group.url)
-            // const groupName = childSnapshot.val()
-            // const groupUrl = childSnapshot.key
-            // $('.data').append(`<div class="name">${ groupUrl }: ${ groupName }</div>`)
+            console.log(group.name, group.abbrevitation, group.logo, group.url, )
             $('.groups > .content').append(`
                 <div class="group">
-                    <img src="${ group.logo }" width="64px"/>
+                    <img src="${ group.logo }" width="32px"/>
                     <div class="details">
                         <div class="name">
-                            ${ group.name } <div class="abbrevitation">${ group.abbrevitation }</div>
+                            ${ group.name }
+                            <div class="abbrevitation">${ group.abbrevitation }</div>
                         </div>
-                        <div class="description"></div>
+                        <a class="members" href="${ group.url }/members" target="_blank">
+                          <img src="images/groups.svg" width="23.26px"/> <b>${ group.members }</b>
+                        </a>
+                        <a class="url" href="${ group.url }" target="_blank">
+                          <img src="images/url.svg"/>
+                        </a>
                     </div>
                 </div>
             `)
@@ -42,10 +92,6 @@ get(dataRef).then((snapshot) => {
 }).catch((error) => {
     console.error(error)
 })
-
-// $('button').on('click', function(e) {
-//     alert('ok')
-// })
 
 function xml2json(xml) {
     try {
@@ -76,66 +122,8 @@ function xml2json(xml) {
     }
 }
 
-// const newDataRef = push(dataRef);
-// set(newDataRef, {
-//     "url": 'https://steamcommunity.com/groups/hack_er',
-//     "name": 'Name',
-//     "abbrevitation": 'Tag',
-//     "description": 'Short description',
-//     "logo": 'https://avatars.akamai.steamstatic.com/6b5e94eae524b06758e49649773f7efe5f900dc9_full.jpg'    
-// })
-// set(dataObj)
-
-// $.ajax({
-//     type: 'GET',
-//     // https://api.steampowered.com/ISteamUser/ResolveVanityURL/v1/?key=<your-api-key>&vanityurl=${groupVanityURL}
-//     url: "https://steamcommunity.com/groups/hack_er/memberslistxml/?xml=1",
-//     // url: "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=486F5359317236891FF4CB8DB158C49C&steamids=76561198107529407?method=getQuote&lang=en&format=jsonp&jsonp=?",
-//     dataType:'xml',
-//     // headers: {
-//     //     'Access-Control-Allow-Credentials' : true,
-//     //     'Access-Control-Allow-Origin':'*',
-//     //     'Access-Control-Allow-Methods':'GET',
-//     //     'Access-Control-Allow-Headers':'application/json',
-                // 'Access-Control-Allow-Headers':'Content-Type, X-Auth-Token, Origin, Authorization'
-//     // },
-// }).done(function(data){
-//     // const name = data["response"]["players"][0]["personaname"]
-//     // const url = data["response"]["players"][0]["profileurl"]
-//     // const avatar = data["response"]["players"][0]["avatarfull"]
-//     console.log(data)
-// })
-
 const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-const rawGroupUrl = 'https://steamcommunity.com/groups/hack_er'
-const targetUrl = 'https://steamcommunity.com/groups/hack_er/memberslistxml/?xml=1';
 
-// $.ajax({
-//     url: proxyUrl + targetUrl,
-//     type: 'GET',
-//     dataType: 'xml',
-//     crossDomain: true,
-//     headers: {
-//       'X-Requested-With': 'XMLHttpRequest'
-//     },
-//     success: function(xmlString) {
-//       // Handle the XML data as appropriate
-//       var jsonText = JSON.stringify(xml2json(xmlString))
-//       var parseJson = JSON.parse(jsonText)
-//       console.log(parseJson.memberList)
-//       const groupId = parseJson.memberList.groupID64
-//       const memberCount = parseJson.memberList.memberCount
-//       const avatarMedium = parseJson.memberList.groupDetails.avatarMedium
-//       const avatarFull = parseJson.memberList.groupDetails.avatarFull
-//       console.log(parseJson.memberList.groupDetails)
-//     },
-//     error: function(xhr, status, error) {
-//       // Handle errors that occur during the API request
-//       console.error(error)
-//     }
-// })
-
-// Overlays
 const addGroup = document.getElementById('addGroup')
 const createGroup = document.getElementById('createGroup')
 const overlay = document.getElementById('overlay')
@@ -149,49 +137,110 @@ createGroup.addEventListener('click', () => {
     // console.log(createGroupInput.value)
     if (createGroupInput.value.includes('https://steamcommunity.com/groups/')) {
         $.ajax({
-            url: createGroupInput.value,
+            url: proxyUrl + createGroupInput.value + '/memberslistxml/?xml=1',
             type: 'GET',
-            dataType: "xml",
+            dataType: 'xml',
             crossDomain: true,
             headers: {
-                'Access-Control-Allow-Credentials': true,
-                'Access-Control-Allow-Origin': '*'
+            'X-Requested-With': 'XMLHttpRequest'
             },
-            // headers: {
-            //   'X-Requested-With': 'XMLHttpRequest'
-            // },
-            success: function(data) { // xmlString
-                const parser = new DOMParser();
-                const htmlDoc = parser.parseFromString(data, 'xml');
-                setTimeout(() => {
-                    console.log(htmlDoc)
-                    const name = htmlDoc.querySelector('.grouppage_resp_title')
-                    const abbr = htmlDoc.querySelector('.grouppage_header_abbrev')
-                    const membersCount = htmlDoc.querySelector('.count') 
-                    const logo = htmlDoc.querySelector('.grouppage_logo > a::attr(href)')
-                    console.log(name.firstChild.textContent)
-                    console.log(abbr.textContent)
-                    console.log(membersCount.textContent)
-                    console.log(logo)
-                }, 2000)
-              // Handle the XML data as appropriate
-            //   var jsonText = JSON.stringify(xml2json(xmlString))
-            //   var parseJson = JSON.parse(jsonText)
-            //   console.log(parseJson)
-            //   console.log(parseJson.memberList.groupDetails)
+            success: function(xmlString) {
+                $.ajax({
+                    url: proxyUrl + createGroupInput.value,
+                    type: 'GET',
+                    crossDomain: true,
+                    success: function(data) {
+                        const parser = new DOMParser()
+                        const htmlDoc = parser.parseFromString(data, 'text/html')
+                        setTimeout(() => {
+                            console.log(htmlDoc)
+                            const abbr = htmlDoc.querySelector('.grouppage_header_abbrev')
+                            var jsonText = JSON.stringify(xml2json(xmlString))
+                            var parseJson = JSON.parse(jsonText)
+                            console.log(parseJson)
+                            const name = parseJson.memberList.groupDetails.groupName
+                            const groupId = parseJson.memberList.groupID64
+                            const memberCount = parseJson.memberList.memberCount
+                            const avatarMedium = parseJson.memberList.groupDetails.avatarMedium
+                            const avatarFull = parseJson.memberList.groupDetails.avatarFull
+                            console.log(name, abbr.textContent, groupId, memberCount, avatarFull)
 
-            //     const newDataRef = push(dataRef);
-            //     set(newDataRef, {
-            //         "url": 'https://steamcommunity.com/groups/hack_er',
-            //         "name": 'Name',
-            //         "abbrevitation": 'Tag',
-            //         "description": 'Short description',
-            //         "logo": 'https://avatars.akamai.steamstatic.com/6b5e94eae524b06758e49649773f7efe5f900dc9_full.jpg'    
-            //     })
+
+                            get(groupRef)
+                            .then((snapshot) => {
+                              if (snapshot.exists()) {
+                                const groups = snapshot.val();
+                                const duplicateGroup = Object.values(groups).find((group) => group.groupId === groupId);
+                                if (duplicateGroup) {
+                                  console.log('Group with name already exists');
+                                } else {
+                                    const newgroupRef = push(groupRef)
+                                    set(newgroupRef, {
+                                        "groupId": groupId,
+                                        "url": createGroupInput.value,
+                                        "name": name,
+                                        "abbrevitation": abbr.textContent,
+                                        "logo": avatarFull,
+                                        "members": memberCount,
+                                        "pinned": false,
+                                        "boosted": false
+                                    })
+                                }
+                              } else {
+                                console.log('No groups exist');
+                              }
+                            })
+                            .catch((error) => {
+                              console.log('Error getting groups:', error);
+                            });
+                            // get(groupRef).orderByChild('id').equalTo(groupId).once('value', snapshot => {
+                            //     if (!snapshot.exists()) {
+                            //       // Item with the URL does not exist, push the new item
+                            //       const newgroupRef = push(groupRef).then(() => {
+                            //             set(newgroupRef, {
+                            //                 "url": createGroupInput.value,
+                            //                 "name": name,
+                            //                 "abbrevitation": abbr.textContent,
+                            //                 "logo": avatarFull,
+                            //                 "members": memberCount,
+                            //                 "pinned": false,
+                            //                 "boosted": false
+                            //             })
+                            //         })
+                            //         .catch(error => console.log('Error adding item:', error));
+                            //     } else {
+                            //       console.log('Item with URL already exists');
+                            //     }
+                            //   });
+                        }, 2000)
+                      // Handle the XML data as appropriate
+                    //   var jsonText = JSON.stringify(xml2json(xmlString))
+                    //   var parseJson = JSON.parse(jsonText)
+                    //   console.log(parseJson)
+                    //   console.log(parseJson.memberList.groupDetails)
+        
+                    //     const newgroupRef = push(groupRef);
+                    //     set(newgroupRef, {
+                    //         "url": 'https://steamcommunity.com/groups/hack_er',
+                    //         "name": 'Name',
+                    //         "abbrevitation": 'Tag',
+                    //         "description": 'Short description',
+                    //         "logo": 'https://avatars.akamai.steamstatic.com/6b5e94eae524b06758e49649773f7efe5f900dc9_full.jpg'    
+                    //     })
+                    },
+                    complete: function (data) {
+                        overlay.classList.remove('active')
+                    },
+                    error: function(xhr, status, error) {
+                      // Handle errors that occur during the API request
+                      console.error(error)
+                    }
+                })
+
             },
             error: function(xhr, status, error) {
-              // Handle errors that occur during the API request
-              console.error(error)
+                // Handle errors that occur during the API request
+                console.error(error)
             }
         })
     } else {

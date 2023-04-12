@@ -12,20 +12,25 @@
 </head>
 <body>
     <div class="application">
-        <div class="header">
-            <div class="title">
-                Unique Steam Group Generator
-                <div class="subTitle">Your 2nd chance to get that fancy name and tag.</div>
+        <div class="container">
+            <div class="header">
+                <div class="title">
+                    Unique Steam Group Generator
+                    <div class="subTitle">Your second chance to get that fancy name and tag.</div>
+                </div>
+                <div class="smallButton">Share <img src="images/share.svg"/></div>
+                <div class="icon"><img src="images/logo.svg"/></div>
             </div>
-            <div class="smallButton">Share <img src="images/share.svg"/></div>
-            <div class="icon"><img src="images/logo.svg"/></div>
-        </div>
-        <div class="generator">
-            <input type="text" placeholder="Name or abbreviation (max. len. 63 or 11 for abbr.)"/>
-            <button><b>Copy to clipboard</b><img src="images/clipboard.svg"/></button>
-        </div>
-        <div class="about">
-            USGG simply <b>generates zero-width</b> character between letters. You can create a group via Steam <b>application</b> or <b>website</b>. Keep in mind that generated names might be taken. It’s better to choose longer name and generate untill success. Due to ZWJ tags are a bit shorter. Can't be used as a group link. Font glitches might appear.
+            <div class="content">
+                <div class="generator">
+                    <input type="text" placeholder="Name or abbreviation (max. len. 63 or 11 for abbr.)"/>
+                    <button><b>Copy to clipboard</b><img src="images/clipboard.svg" height="18px"/></button>
+                </div>
+                <div class="box center">
+                    Generates zero-width character between letters. You can create a group via Steam <b>application</b> or <b>website</b>. Keep in mind that generated names might be taken. It’s better to choose longer name and generate untill success. Due to ZWJ tags are a bit shorter. Can't be used as a group link. Font glitches might appear.
+                </div>
+                <div class="box center">We have <b id="visitors"></b> unique visits and <b id="groups"></b> groups, thanks!</div>
+            </div>
         </div>
         <div class="groups">
             <div class="header">
@@ -42,7 +47,7 @@
             </div>
         </div>
         <div class="footer">
-            Since 2020 · Version 1.15 · Latest update April 11, 2023
+            Since 2020 · Version 1.18 · Latest update April 12, 2023
             <img src="images/cpt-onl.svg" width="47.5px"/>
         </div>
     </div>
