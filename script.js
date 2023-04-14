@@ -186,7 +186,15 @@ closeButton.addEventListener('click', () => {
 
 genButton.addEventListener('click', () => {
   console.log('generator button clicked')
-  var audio = new Audio("sounds/release.ogg");
+  var getTag = document.getElementById("gen-input").value
+  var splitTag = getTag.split("").join("؜")
+  $("input#gen-input").val(splitTag).select()
+  document.execCommand("copy");
+
+  $("input#gen-input").val(getTag);
+  document.getSelection().removeAllRanges();
+
+  var audio = new Audio("sounds/release.ogg")
   audio.volume = 0.3;
   audio.play();
 })
