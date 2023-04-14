@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unique Steam Group Generator by Josefiks</title>
+    <link rel="icon" type="image/x-icon" href="images/logo.svg">
     <script type="module" src="script.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     
@@ -24,15 +25,15 @@
             <div class="content">
                 <div class="generator">
                     <input type="text" placeholder="Name or abbreviation (max. len. 63 or 11 for abbr.)"/>
-                    <button><b>Copy to clipboard</b><img src="images/clipboard.svg" height="18px"/></button>
+                    <button id="gen-button"><b>Copy to clipboard</b><img src="images/clipboard.svg" height="18px"/></button>
                 </div>
                 <div class="box center">
-                    Generates zero-width character between letters. You can create a group via Steam <b>application</b> or <b>website</b>. Keep in mind that generated names might be taken. It’s better to choose longer name and generate untill success. Due to ZWJ tags are a bit shorter. Can't be used as a group link. Font glitches might appear.
+                    Generates zero-width character between letters. You can create a group via Steam <b>application</b> <img src="images/url.svg" height="10px"> or <b>website</b> <img src="images/url.svg" height="10px">. Keep in mind that generated names might be taken. It’s better to choose longer name and generate untill success. Due to ZWJ tags are a bit shorter. Can't be used as a group link. Font glitches might appear.
                 </div>
-                <div class="box center">We have <b id="visitors"></b> unique visits and <b id="groups"></b> groups, thanks!</div>
+                <div class="box center">We have <b id="visitors"></b> unique visits and <b id="groupsCount"></b> groups, thanks!</div>
             </div>
         </div>
-        <div class="groups">
+        <div class="container" id="groups">
             <div class="header">
                 <div class="title">
                     Groups
@@ -41,9 +42,10 @@
                 <div class="smallButton" id="addGroup">Add group <img src="images/add.svg"/></div>
                 <div class="icon"><img src="images/groups.svg"/></div>
             </div>
-            <input type="url">
             <div class="content">
-
+                <div class="loading">
+                    <img src="images/loading.svg" height="80px">
+                </div>
             </div>
         </div>
         <div class="footer">
@@ -61,13 +63,13 @@
                 <div id="close-button"><img src="images/close.svg"/></div>
             </div>
             <div class="addGroupContent">
-                <input id="createGroupInput" type="text" placeholder="https://steamcommunity.com/groups/your-group-url">
+                <div class="addGroupForm">
+                    <input id="createGroupInput" type="text" placeholder="https://steamcommunity.com/groups/your-group-url"/>
+                    <button id="createGroup"><b>Add</b><img src="images/g-add.svg" height="18px"/></button>
+                </div>
                 <div class="information">
                     Make sure your group is public so everybody will have ability to join it. Private groups will be ignored.
                 </div>
-                <button id="createGroup">
-                    Add <img src="images/add.svg"/>
-                </button>
             </div>
         </div>
       </div>

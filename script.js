@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js"
-import { getDatabase, ref, get, push, set, onValue, child } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js"
+import { getDatabase, limitToLast, endBefore, orderByChild, startAfter, limitToFirst, query, startAt, endAt, orderByKey, ref, get, push, set, onValue, child } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-database.js"
 
 const firebaseConfig = {
     apiKey: "AIzaSyAPX5VHanXXxoG-cgrVqinSThMnVM4eMTo",
@@ -23,6 +23,7 @@ if (!browserId) {
   localStorage.setItem('browserId', browserId)
 }
 
+// Visitors
 onValue(child(visitorsRef, browserId), (snapshot) => {
   if (!snapshot.exists()) {
     set(child(visitorsRef, browserId), {
@@ -38,42 +39,39 @@ onValue(visitorsRef, (snapshot) => {
   console.error('Error retrieving visitor size:', error)
 })
 
-onValue(groupRef, (snapshot) => {
-  $('#groups').html(snapshot.size)
+// Groups
+onValue(query(groupRef), (snapshot) => {
+  $('#groupsCount').html(snapshot.size)
+  $('#groups > .content > .loading').css({'display': 'flex'})
+  $('#groups > .content').html('')
+  snapshot.forEach((group) => {
+    const groupData = group.val()
+    $('#groups > .content').prepend(`
+      <div class="group">
+          <img src="${ groupData.logo }" width="32px"/>
+          <div class="details">
+              <div class="name">
+                  ${ groupData.name }
+                  <div class="abbrevitation">${ groupData.abbrevitation }</div>
+              </div>
+              <a class="members" href="${ groupData.url }/members" target="_blank">
+                <img src="images/groups.svg" width="23.26px"/> <b>${ groupData.members }</b>
+              </a>
+              <a class="url" href="${ groupData.url }" target="_blank">
+                <img src="images/url.svg"/>
+              </a>
+          </div>
+      </div>
+    `)
+  })
+  $('#groups > .content > .loading').css({'display': 'none'})
 }, (error) => {
-  $('#groups').html('N/A')
+  $('#groupsCount').html('N/A')
   console.error('Error retrieving group size:', error);
 })
 
-get(groupRef).then((snapshot) => {
-    if (snapshot.exists()) {
-        snapshot.forEach((childSnapshot) => {
-            const group = childSnapshot.val()
-            console.log(group.name, group.abbrevitation, group.logo, group.url, )
-            $('.groups > .content').append(`
-                <div class="group">
-                    <img src="${ group.logo }" width="32px"/>
-                    <div class="details">
-                        <div class="name">
-                            ${ group.name }
-                            <div class="abbrevitation">${ group.abbrevitation }</div>
-                        </div>
-                        <a class="members" href="${ group.url }/members" target="_blank">
-                          <img src="images/groups.svg" width="23.26px"/> <b>${ group.members }</b>
-                        </a>
-                        <a class="url" href="${ group.url }" target="_blank">
-                          <img src="images/url.svg"/>
-                        </a>
-                    </div>
-                </div>
-            `)
-        })
-    } else {
-        $('.data').append(`<div class="name">No data available right now, sorry!</div>`)
-    }
-}).catch((error) => {
-    console.error(error)
-})
+// Groups extend on scroll
+
 
 function xml2json(xml) {
     try {
@@ -104,12 +102,13 @@ function xml2json(xml) {
     }
 }
 
-const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+const proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=';
 
 const addGroup = document.getElementById('addGroup')
 const createGroup = document.getElementById('createGroup')
 const overlay = document.getElementById('overlay')
 const closeButton = document.getElementById('close-button')
+const genButton = document.getElementById('gen-button')
 
 addGroup.addEventListener('click', () => {
   overlay.classList.add('active');
@@ -118,115 +117,61 @@ createGroup.addEventListener('click', () => {
     const createGroupInput = document.getElementById('createGroupInput')
     // console.log(createGroupInput.value)
     if (createGroupInput.value.includes('https://steamcommunity.com/groups/')) {
-        $.ajax({
-            url: proxyUrl + createGroupInput.value + '/memberslistxml/?xml=1',
-            type: 'GET',
-            dataType: 'xml',
-            crossDomain: true,
-            headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(xmlString) {
-                $.ajax({
-                    url: proxyUrl + createGroupInput.value,
-                    type: 'GET',
-                    crossDomain: true,
-                    success: function(data) {
-                        const parser = new DOMParser()
-                        const htmlDoc = parser.parseFromString(data, 'text/html')
-                        setTimeout(() => {
-                            console.log(htmlDoc)
-                            const abbr = htmlDoc.querySelector('.grouppage_header_abbrev')
-                            var jsonText = JSON.stringify(xml2json(xmlString))
-                            var parseJson = JSON.parse(jsonText)
-                            console.log(parseJson)
-                            const name = parseJson.memberList.groupDetails.groupName
-                            const groupId = parseJson.memberList.groupID64
-                            const memberCount = parseJson.memberList.memberCount
-                            const avatarMedium = parseJson.memberList.groupDetails.avatarMedium
-                            const avatarFull = parseJson.memberList.groupDetails.avatarFull
-                            console.log(name, abbr.textContent, groupId, memberCount, avatarFull)
-
-
-                            get(groupRef)
-                            .then((snapshot) => {
-                              if (snapshot.exists()) {
-                                const groups = snapshot.val();
-                                const duplicateGroup = Object.values(groups).find((group) => group.groupId === groupId);
-                                if (duplicateGroup) {
-                                  console.log('Group with name already exists');
-                                } else {
-                                    const newgroupRef = push(groupRef)
-                                    set(newgroupRef, {
-                                        "groupId": groupId,
-                                        "url": createGroupInput.value,
-                                        "name": name,
-                                        "abbrevitation": abbr.textContent,
-                                        "logo": avatarFull,
-                                        "members": memberCount,
-                                        "pinned": false,
-                                        "boosted": false
-                                    })
-                                }
-                              } else {
-                                console.log('No groups exist');
-                              }
+      $('#createGroup').html('<img src="images/loading.svg" height="41px"/>').prop('disabled', true);
+      $.ajax({
+          url: proxyUrl + createGroupInput.value,
+          type: 'GET',
+          crossDomain: true,
+          success: function(data) {
+              const parser = new DOMParser()
+              const htmlDoc = parser.parseFromString(data, 'text/html')
+              setTimeout(() => {
+                try {
+                  const isPublic = htmlDoc.querySelectorAll('.grouppage_join_area > a').length
+                  if(isPublic == true) {
+                    const url = htmlDoc.querySelectorAll('#join_group_form')[0].attributes[3].nodeValue
+                    const name = htmlDoc.querySelectorAll('.grouppage_header_name')[0].firstChild.data
+                    const abbr = htmlDoc.querySelector('.grouppage_header_abbrev').textContent
+                    const logo = htmlDoc.querySelectorAll('.grouppage_logo > img')[0].src
+                    const members = htmlDoc.querySelectorAll('.members > a > .count')[0].innerHTML
+                    get(groupRef).then((snapshot) => {
+                      // if (snapshot.exists()) {
+                        const groups = snapshot.val()
+                        const duplicateGroup = Object.values(groups).find((group) => group.url === createGroupInput.value)
+                        if (duplicateGroup) {
+                          console.error('This group already exists.')
+                        } else {
+                            // const newgroupRef = push(groupRef)
+                            set(push(groupRef), {
+                                "url": url,
+                                "name": name,
+                                "abbrevitation": abbr,
+                                "logo": logo,
+                                "members": members,
+                                "pinned": false,
+                                "boosted": false,
+                                "timestamp": Date.now()
                             })
-                            .catch((error) => {
-                              console.log('Error getting groups:', error);
-                            });
-                            // get(groupRef).orderByChild('id').equalTo(groupId).once('value', snapshot => {
-                            //     if (!snapshot.exists()) {
-                            //       // Item with the URL does not exist, push the new item
-                            //       const newgroupRef = push(groupRef).then(() => {
-                            //             set(newgroupRef, {
-                            //                 "url": createGroupInput.value,
-                            //                 "name": name,
-                            //                 "abbrevitation": abbr.textContent,
-                            //                 "logo": avatarFull,
-                            //                 "members": memberCount,
-                            //                 "pinned": false,
-                            //                 "boosted": false
-                            //             })
-                            //         })
-                            //         .catch(error => console.log('Error adding item:', error));
-                            //     } else {
-                            //       console.log('Item with URL already exists');
-                            //     }
-                            //   });
-                        }, 2000)
-                      // Handle the XML data as appropriate
-                    //   var jsonText = JSON.stringify(xml2json(xmlString))
-                    //   var parseJson = JSON.parse(jsonText)
-                    //   console.log(parseJson)
-                    //   console.log(parseJson.memberList.groupDetails)
-        
-                    //     const newgroupRef = push(groupRef);
-                    //     set(newgroupRef, {
-                    //         "url": 'https://steamcommunity.com/groups/hack_er',
-                    //         "name": 'Name',
-                    //         "abbrevitation": 'Tag',
-                    //         "description": 'Short description',
-                    //         "logo": 'https://avatars.akamai.steamstatic.com/6b5e94eae524b06758e49649773f7efe5f900dc9_full.jpg'    
-                    //     })
-                    },
-                    complete: function (data) {
-                        overlay.classList.remove('active')
-                    },
-                    error: function(xhr, status, error) {
-                      // Handle errors that occur during the API request
-                      console.error(error)
-                    }
-                })
-
-            },
-            error: function(xhr, status, error) {
-                // Handle errors that occur during the API request
-                console.error(error)
-            }
-        })
+                        }
+                    })
+                    overlay.classList.remove('active')
+                    createGroupInput.value = ''
+                  } else {
+                    $('.addGroupForm').after('<div class="error">This group is private, we are collecting only public ones!</div>')
+                  }
+                  $('#createGroup').html('<b>Add</b><img src="images/g-add.svg" height="18px"/>').prop('disabled', false);
+                } catch(error) {
+                  console.error("Something is wrong. Try once again! ..or come back later!")
+                }             
+              }, 2000)
+          },
+          error: function(xhr, status, error) {
+            // Handle errors that occur during the API request
+            console.error("ERROR!",error)
+          }
+      })
     } else {
-        $('#createGroupInput').after('<div class="error">Type correct group url!</div>')
+        $('.addGroupForm').after('<div class="error">Type correct group url!</div>')
     }
 })
 overlay.addEventListener('click', (e) => {
@@ -238,3 +183,11 @@ overlay.addEventListener('click', (e) => {
 closeButton.addEventListener('click', () => {
   overlay.classList.remove('active');
 })
+
+genButton.addEventListener('click', () => {
+  console.log('generator button clicked')
+  var audio = new Audio("sounds/release.ogg");
+  audio.volume = 0.3;
+  audio.play();
+})
+
